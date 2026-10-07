@@ -1,0 +1,389 @@
+// Neuvi — modelo de datos del MVP.
+// Multi-tenant: casi todas las tablas cuelgan de Organization. Toda consulta debe
+// filtrar por organizationId (ver src/lib/permissions.ts).
+// Montos en céntimos de sol (Int) para evitar problemas con decimales.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Neon (integración de Vercel) expone la conexión directa como DATABASE_URL_UNPOOLED.
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum OrgType {
+  INDIVIDUAL // psicólogo independiente
+  CENTRO // centro psicológico
+}
+
+enum Plan {
+  PRUEBA // 7 días con acceso completo
+  INDIVIDUAL
+  CENTRO
+}
+
+enum Role {
+  ADMIN // dueño / administrador del consultorio o centro
+  PSICOLOGO
+  RECEPCION
+}
+
+enum DocumentType {
+  DNI
+  CE // carné de extranjería
+  PASAPORTE
+  OTRO
+}
+
+enum Sex {
+  FEMENINO
+  MASCULINO
+  OTRO
+  NO_ESPECIFICA
+}
+
+enum PatientStatus {
+  ACTIVO
+  EN_PAUSA
+  ALTA // alta terapéutica
+  ABANDONO
+}
+
+enum AppointmentStatus {
+  PROGRAMADA
+  CONFIRMADA
+  ATENDIDA
+  NO_ASISTIO
+  CANCELADA
+}
+
+enum Modality {
+  PRESENCIAL
+  VIRTUAL
+}
+
+enum PackageStatus {
+  ACTIVO
+  COMPLETADO
+  CANCELADO
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  YAPE
+  PLIN
+  TRANSFERENCIA
+  TARJETA
+  OTRO
+}
+
+enum RiskLevel {
+  NINGUNO
+  BAJO
+  MODERADO
+  ALTO
+}
+
+model Organization {
+  id                    String   @id @default(cuid())
+  name                  String
+  type                  OrgType
+  plan                  Plan     @default(PRUEBA)
+  trialEndsAt           DateTime
+  phone                 String?
+  email                 String?
+  address               String?
+  ruc                   String?
+  /// Avisar renovación cuando al paquete le queden <= N sesiones.
+  renewalThreshold      Int      @default(1)
+  /// Duración por defecto de una cita, en minutos.
+  defaultSessionMinutes Int      @default(50)
+  /// Si es true, una inasistencia (NO_ASISTIO) también descuenta sesión del paquete.
+  noShowConsumesSession Boolean  @default(false)
+  /// Plantilla de recordatorio por WhatsApp. Variables: {paciente} {fecha} {hora} {profesional} {centro}
+  reminderTemplate      String?
+  /// Plantilla de aviso de renovación. Variables: {paciente} {restantes} {profesional} {centro}
+  renewalTemplate       String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  users              User[]
+  rooms              Room[]
+  patients           Patient[]
+  appointments       Appointment[]
+  packages           Package[]
+  payments           Payment[]
+  patientAssignments PatientAssignment[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  email          String   @unique
+  passwordHash   String
+  role           Role
+  /// true si atiende pacientes (el psicólogo independiente es ADMIN + profesional).
+  isProfessional Boolean  @default(false)
+  specialty      String?
+  /// Número de colegiatura C.Ps.P.
+  licenseNumber  String?
+  phone          String?
+  /// Color del profesional en la agenda (hex).
+  calendarColor  String   @default("#4C8DD7")
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patients            Patient[]           @relation("PatientProfessional")
+  appointments        Appointment[]       @relation("AppointmentProfessional")
+  createdAppointments Appointment[]       @relation("AppointmentCreatedBy")
+  sessionNotes        SessionNote[]
+  payments            Payment[]
+  assignmentsFrom     PatientAssignment[] @relation("AssignmentFrom")
+  assignmentsTo       PatientAssignment[] @relation("AssignmentTo")
+  assignmentsChanged  PatientAssignment[] @relation("AssignmentChangedBy")
+
+  @@index([organizationId])
+}
+
+/// Consultorio físico dentro de la organización (para evitar cruces de ambiente).
+model Room {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@unique([organizationId, name])
+}
+
+model Patient {
+  id                           String        @id @default(cuid())
+  organizationId               String
+  /// Psicólogo tratante. Solo él puede ver la historia clínica.
+  professionalId               String?
+  firstName                    String
+  lastName                     String
+  documentType                 DocumentType  @default(DNI)
+  documentNumber               String?
+  birthDate                    DateTime?     @db.Date
+  sex                          Sex?
+  /// Celular (WhatsApp) del paciente.
+  phone                        String?
+  email                        String?
+  address                      String?
+  district                     String?
+  occupation                   String?
+  maritalStatus                String?
+  educationLevel               String?
+  /// Apoderado (obligatorio en la práctica para menores de edad).
+  guardianName                 String?
+  guardianRelationship         String?
+  guardianPhone                String?
+  emergencyContactName         String?
+  emergencyContactRelationship String?
+  emergencyContactPhone        String?
+  /// ¿Cómo nos conoció? (referido, redes, Google, etc.)
+  referralSource               String?
+  status                       PatientStatus @default(ACTIVO)
+  /// Notas administrativas (visibles para recepción; NO van datos clínicos aquí).
+  adminNotes                   String?
+  createdAt                    DateTime      @default(now())
+  updatedAt                    DateTime      @updatedAt
+
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  professional   User?               @relation("PatientProfessional", fields: [professionalId], references: [id], onDelete: SetNull)
+  clinicalRecord ClinicalRecord?
+  sessionNotes   SessionNote[]
+  appointments   Appointment[]
+  packages       Package[]
+  payments       Payment[]
+  assignments    PatientAssignment[]
+
+  @@unique([organizationId, documentNumber])
+  @@index([organizationId, lastName])
+  @@index([professionalId])
+}
+
+/// Historia clínica (ficha de ingreso). Una por paciente. Solo la ve el psicólogo tratante.
+model ClinicalRecord {
+  id                    String    @id @default(cuid())
+  patientId             String    @unique
+  /// Motivo de consulta (en palabras del paciente).
+  consultationReason    String?
+  /// Historia del problema actual: inicio, evolución, desencadenantes.
+  currentProblemHistory String?
+  /// Antecedentes personales: médicos, psiquiátricos, hospitalizaciones, desarrollo.
+  personalHistory       String?
+  /// Tratamientos psicológicos / psiquiátricos previos.
+  previousTreatments    String?
+  /// Antecedentes familiares relevantes.
+  familyHistory         String?
+  currentMedication     String?
+  /// Consumo de sustancias (alcohol, tabaco, otras).
+  substanceUse          String?
+  /// Examen mental: apariencia, conducta, ánimo, afecto, pensamiento, orientación.
+  mentalStatusExam      String?
+  /// Impresión diagnóstica.
+  diagnosticImpression  String?
+  /// Código CIE-10 / DSM-5 (opcional).
+  diagnosisCode         String?
+  /// Objetivos terapéuticos.
+  treatmentGoals        String?
+  /// Enfoque y plan de intervención.
+  treatmentPlan         String?
+  riskLevel             RiskLevel @default(NINGUNO)
+  riskNotes             String?
+  informedConsent       Boolean   @default(false)
+  informedConsentDate   DateTime?
+  updatedById           String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+/// Nota de evolución de una sesión. Solo la ve el psicólogo tratante.
+model SessionNote {
+  id              String    @id @default(cuid())
+  patientId       String
+  authorId        String
+  appointmentId   String?   @unique
+  sessionDate     DateTime
+  sessionNumber   Int?
+  modality        Modality  @default(PRESENCIAL)
+  /// Estado emocional observado.
+  moodObserved    String?
+  /// Temas abordados.
+  topics          String?
+  /// Desarrollo de la sesión / observaciones.
+  development     String
+  /// Técnicas o intervenciones aplicadas.
+  interventions   String?
+  /// Tareas asignadas al paciente.
+  homework        String?
+  /// Plan para la próxima sesión.
+  nextSessionPlan String?
+  riskLevel       RiskLevel @default(NINGUNO)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id])
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([patientId, sessionDate])
+}
+
+/// Paquete de sesiones comprado por un paciente. Una sesión suelta = paquete de 1.
+model Package {
+  id                String        @id @default(cuid())
+  organizationId    String
+  patientId         String
+  name              String
+  totalSessions     Int
+  priceCents        Int
+  startDate         DateTime      @default(now())
+  status            PackageStatus @default(ACTIVO)
+  renewalNotifiedAt DateTime?
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  payments     Payment[]
+
+  @@index([organizationId, status])
+  @@index([patientId])
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  organizationId String
+  patientId      String
+  packageId      String
+  amountCents    Int
+  method         PaymentMethod
+  paidAt         DateTime      @default(now())
+  /// N° de operación (Yape, transferencia, etc.)
+  reference      String?
+  notes          String?
+  registeredById String
+  createdAt      DateTime      @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  package      Package      @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  registeredBy User         @relation(fields: [registeredById], references: [id])
+
+  @@index([organizationId, paidAt])
+  @@index([packageId])
+}
+
+model Appointment {
+  id             String            @id @default(cuid())
+  organizationId String
+  patientId      String
+  professionalId String
+  roomId         String?
+  /// Paquete del que descuenta la sesión (si aplica).
+  packageId      String?
+  startsAt       DateTime
+  endsAt         DateTime
+  status         AppointmentStatus @default(PROGRAMADA)
+  modality       Modality          @default(PRESENCIAL)
+  /// Notas administrativas de la cita (no clínicas).
+  notes          String?
+  cancelReason   String?
+  reminderSentAt DateTime?
+  createdById    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professional User         @relation("AppointmentProfessional", fields: [professionalId], references: [id])
+  room         Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  package      Package?     @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  createdBy    User?        @relation("AppointmentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  sessionNote  SessionNote?
+
+  @@index([organizationId, startsAt])
+  @@index([professionalId, startsAt])
+  @@index([roomId, startsAt])
+  @@index([patientId])
+}
+
+/// Bitácora de cambios de psicólogo tratante (quién, cuándo, de quién a quién).
+/// El tratante es quien accede a la historia clínica, así que todo traspaso queda registrado.
+model PatientAssignment {
+  id             String   @id @default(cuid())
+  organizationId String
+  patientId      String
+  /// Tratante anterior (null si no tenía).
+  fromUserId     String?
+  /// Nuevo tratante (null si se quitó la asignación).
+  toUserId       String?
+  /// Usuario que hizo el cambio.
+  changedById    String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  fromUser     User?        @relation("AssignmentFrom", fields: [fromUserId], references: [id], onDelete: SetNull)
+  toUser       User?        @relation("AssignmentTo", fields: [toUserId], references: [id], onDelete: SetNull)
+  changedBy    User?        @relation("AssignmentChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([patientId, createdAt])
+}
