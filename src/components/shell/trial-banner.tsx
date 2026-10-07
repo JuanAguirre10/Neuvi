@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Sparkles, TriangleAlert } from "lucide-react";
 import { daysUntil } from "@/lib/dates";
 
-/** Aviso de prueba gratuita (7 días). Los precios aún no están definidos: se activa por WhatsApp. */
+/** Aviso de prueba gratuita (3 meses). Los precios aún no están definidos: se activa por WhatsApp. */
 export function TrialBanner({ trialEndsAt }: { trialEndsAt: Date }) {
   const daysLeft = daysUntil(trialEndsAt);
 

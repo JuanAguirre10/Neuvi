@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { RegisterForm } from "./register-form";
+import { TRIAL_LABEL } from "@/features/configuracion/plans";
 
 export const metadata: Metadata = { title: "Crear cuenta" };
 
@@ -10,7 +11,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   return (
     <div>
       <h1 className="text-2xl font-semibold tracking-tight text-brand-navy-deep">Crea tu cuenta</h1>
-      <p className="mt-1 text-sm text-muted-foreground">7 días gratis con acceso completo. Sin tarjeta.</p>
+      <p className="mt-1 text-sm text-muted-foreground">{TRIAL_LABEL} gratis con acceso completo. Sin tarjeta.</p>
       <div className="mt-8">
         <RegisterForm defaultType={defaultType} />
       </div>

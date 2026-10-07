@@ -6,8 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { createSession, destroySession } from "@/lib/auth";
 import { type ActionState, formToObject, fromZodError } from "@/lib/action-state";
-
-const TRIAL_DAYS = 7;
+import { TRIAL_DAYS } from "@/features/configuracion/plans";
 
 const loginSchema = z.object({
   email: z.email({ error: "Ingresa un correo válido." }).transform((v) => v.toLowerCase()),

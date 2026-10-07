@@ -10,11 +10,12 @@ import { SecuritySection } from "@/components/landing/security-section";
 import { FinalCta } from "@/components/landing/final-cta";
 import { SiteFooter } from "@/components/landing/site-footer";
 import { WhatsAppFloat } from "@/components/landing/whatsapp-float";
+import { TRIAL_LABEL } from "@/features/configuracion/plans";
 
 export const metadata: Metadata = {
   title: { absolute: "Neuvi — Gestión para psicólogos y centros psicológicos en Perú" },
   description:
-    "Agenda sin cruces, recordatorios por WhatsApp, paquetes de sesiones, pagos, historia clínica protegida y aviso automático de renovación. Prueba Neuvi gratis 7 días.",
+    `Agenda sin cruces, recordatorios por WhatsApp, paquetes de sesiones, pagos, historia clínica protegida y aviso automático de renovación. Prueba Neuvi gratis ${TRIAL_LABEL}.`,
   openGraph: {
     title: "Neuvi — Dedica tu tiempo a atender, no a administrar",
     description:

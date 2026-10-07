@@ -1,11 +1,12 @@
 import { CalendarClock, ClipboardList, UserPlus } from "lucide-react";
 import { SectionHeading } from "./section-heading";
+import { TRIAL_LABEL } from "@/features/configuracion/plans";
 
 const STEPS = [
   {
     icon: UserPlus,
     title: "Crea tu cuenta",
-    text: "Regístrate en minutos como psicólogo independiente o como centro. 7 días gratis y sin tarjeta.",
+    text: `Regístrate en minutos como psicólogo independiente o como centro. ${TRIAL_LABEL} gratis y sin tarjeta.`,
   },
   {
     icon: ClipboardList,

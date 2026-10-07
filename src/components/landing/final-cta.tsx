@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/logo";
 import { NEUVI_WHATSAPP, formatPhone, neuviContactLink } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "./whatsapp-icon";
+import { TRIAL_LABEL } from "@/features/configuracion/plans";
 
 export function FinalCta() {
   return (
@@ -25,7 +26,7 @@ export function FinalCta() {
               <span className="text-brand-teal">recupera tu tiempo para atender.</span>
             </h2>
             <p className="mt-4 max-w-xl text-base text-white/75">
-              7 días con acceso completo, sin tarjeta. Si tienes dudas, escríbenos: te ayudamos a configurar tu
+              {TRIAL_LABEL} con acceso completo, sin tarjeta. Si tienes dudas, escríbenos: te ayudamos a configurar tu
               consultorio o centro.
             </p>
           </div>
@@ -33,7 +34,7 @@ export function FinalCta() {
           <div className="grid gap-3">
             <Button asChild className="h-12 bg-white text-base text-primary hover:bg-white/90">
               <Link href="/registro">
-                Prueba gratis 7 días <ArrowRight className="size-4" />
+                Prueba gratis {TRIAL_LABEL} <ArrowRight className="size-4" />
               </Link>
             </Button>
             <Button

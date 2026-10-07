@@ -20,7 +20,7 @@ enum OrgType {
 }
 
 enum Plan {
-  PRUEBA // 7 días con acceso completo
+  PRUEBA // 3 meses (90 días) con acceso completo
   INDIVIDUAL
   CENTRO
 }

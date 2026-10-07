@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { neuviContactLink } from "@/lib/whatsapp";
 import { ProductMockup } from "./product-mockup";
 import { WhatsAppIcon } from "./whatsapp-icon";
+import { TRIAL_LABEL } from "@/features/configuracion/plans";
 
-const TRUST = ["Sin tarjeta", "Acceso completo por 7 días", "Soporte por WhatsApp"];
+const TRUST = ["Sin tarjeta", `Acceso completo por ${TRIAL_LABEL}`, "Soporte por WhatsApp"];
 
 export function Hero() {
   return (
@@ -49,7 +50,7 @@ export function Hero() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild className="h-12 px-6 text-base shadow-lg shadow-primary/25">
               <Link href="/registro">
-                Prueba gratis 7 días <ArrowRight className="size-4" />
+                Prueba gratis {TRIAL_LABEL} <ArrowRight className="size-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="h-12 bg-white px-6 text-base text-brand-navy-deep">

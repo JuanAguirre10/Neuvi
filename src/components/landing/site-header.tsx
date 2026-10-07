@@ -9,6 +9,7 @@ import { Logo } from "@/components/brand/logo";
 import { neuviContactLink } from "@/lib/whatsapp";
 import { LANDING_NAV } from "./nav";
 import { WhatsAppIcon } from "./whatsapp-icon";
+import { TRIAL_LABEL } from "@/features/configuracion/plans";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -67,7 +68,7 @@ export function SiteHeader() {
               <div className="mt-auto grid gap-2 border-t p-4">
                 <Button asChild className="h-10">
                   <Link href="/registro" onClick={() => setOpen(false)}>
-                    Prueba gratis 7 días <ArrowRight />
+                    Prueba gratis {TRIAL_LABEL} <ArrowRight />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="h-10">

@@ -17,7 +17,7 @@ Validar con psicólogos independientes y centros psicológicos reales que Neuvi 
 ## 2. Alcance
 
 ### Incluido
-1. Registro con **prueba gratuita de 7 días** (psicólogo independiente o centro).
+1. Registro con **prueba gratuita de 3 meses** (90 días, `TRIAL_DAYS` en `src/features/configuracion/plans.ts`) (psicólogo independiente o centro).
 2. Roles: Administrador, Psicólogo, Recepción (el independiente es Admin + Psicólogo).
 3. Pacientes: ficha administrativa + **historia clínica** + **notas de evolución**.
 4. Agenda por profesional y consultorio, con validación de cruces y estados de cita.

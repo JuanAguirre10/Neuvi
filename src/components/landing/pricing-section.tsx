@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PLANS, PRICE_PENDING_LABEL, TRIAL_FEATURES } from "@/features/configuracion/plans";
+import { PLANS, PRICE_PENDING_LABEL, TRIAL_FEATURES, TRIAL_LABEL } from "@/features/configuracion/plans";
 import { neuviContactLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 import { SectionHeading } from "./section-heading";
@@ -24,7 +24,7 @@ export function PricingSection() {
               <Gift className="size-6" />
             </span>
             <div>
-              <h3 className="text-xl font-bold text-brand-navy-deep">Prueba gratuita de 7 días</h3>
+              <h3 className="text-xl font-bold text-brand-navy-deep">Prueba gratuita de {TRIAL_LABEL}</h3>
               <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
                 {TRIAL_FEATURES.map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-brand-navy">
@@ -82,7 +82,7 @@ export function PricingSection() {
 
                 <div className="mt-8 grid gap-2 sm:grid-cols-2">
                   <Button asChild variant={featured ? "default" : "outline"} className="h-11">
-                    <Link href={plan.signupHref}>Probar 7 días gratis</Link>
+                    <Link href={plan.signupHref}>Probar {TRIAL_LABEL} gratis</Link>
                   </Button>
                   <Button asChild variant="ghost" className="h-11 text-brand-navy-deep">
                     <a

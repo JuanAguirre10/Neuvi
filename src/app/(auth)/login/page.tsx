@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "./login-form";
+import { TRIAL_LABEL } from "@/features/configuracion/plans";
 
 export const metadata: Metadata = { title: "Iniciar sesión" };
 
@@ -16,7 +17,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <p className="mt-6 text-center text-sm text-muted-foreground">
         ¿Aún no tienes cuenta?{" "}
         <Link href="/registro" className="font-semibold text-primary hover:underline">
-          Prueba Neuvi gratis 7 días
+          Prueba Neuvi gratis {TRIAL_LABEL}
         </Link>
       </p>
     </div>

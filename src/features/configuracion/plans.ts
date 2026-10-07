@@ -3,7 +3,9 @@
 // Se usa en la landing (#planes) y en /app/configuracion/plan.
 
 export const PRICE_PENDING_LABEL = "Precio por definir";
-export const TRIAL_DAYS = 7;
+/** Prueba gratuita: 3 meses (90 días) con acceso completo. */
+export const TRIAL_DAYS = 90;
+export const TRIAL_LABEL = "3 meses";
 
 export type PlanKey = "INDIVIDUAL" | "CENTRO";
 
@@ -55,7 +57,7 @@ export const PLANS: PlanInfo[] = [
 ];
 
 export const TRIAL_FEATURES = [
-  "Acceso completo durante 7 días",
+  `Acceso completo durante ${TRIAL_LABEL}`,
   "Sin tarjeta de crédito",
   "Tus datos se conservan al activar tu plan",
   "Acompañamiento por WhatsApp",
