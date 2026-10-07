@@ -112,7 +112,7 @@ function PaymentForm({
   const overpay = cents !== null && cents > balance;
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+    <form method="post" onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
       <div className="grid gap-4 overflow-y-auto px-5 py-4">
         <Field label="Paquete" htmlFor="pay-package" error={e.packageId} required>
           <SelectInput

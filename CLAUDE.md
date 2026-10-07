@@ -25,7 +25,7 @@ There is no test suite; verify with `typecheck`, `lint`, `build` and by driving 
 - **Prisma is pinned to 6.x** (classic `prisma-client-js`, import from `@prisma/client`). Don't upgrade to 7/8.
 - **Zod 4**: use `{ error: "..." }` for messages, `z.email()` for emails.
 - **shadcn/ui** uses the `radix-nova` style; `cn` comes from the `cn` package via `@/lib/utils`. Buttons default to `h-8`.
-- **React 19 forms**: `<form action={fn}>` resets fields even on validation errors. Use `useServerForm(action)` from `@/components/common/form` with `onSubmit`, and pass `pending` to `SubmitButton`.
+- **React 19 forms**: `<form action={fn}>` resets fields even on validation errors. Use `useServerForm(action)` from `@/components/common/form` with `<form method="post" onSubmit={onSubmit}>` (the `method` keeps a pre-hydration submit from putting passwords/DNI in the URL), and pass `pending` to `SubmitButton`.
 
 ## Architecture rules
 
@@ -47,4 +47,4 @@ There is no test suite; verify with `typecheck`, `lint`, `build` and by driving 
 
 ## Deploy (Vercel)
 
-Add the Neon integration from the Vercel Marketplace (it sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`), set `SESSION_SECRET` and `NEXT_PUBLIC_NEUVI_WHATSAPP`, and use build command `prisma generate && prisma migrate deploy && next build`.
+Production: https://neuvi-livid.vercel.app (GitHub `JuanAguirre10/Neuvi`, branch `main`; every push redeploys). Add the Neon integration from the Vercel Marketplace (it sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`) and set `SESSION_SECRET` and `NEXT_PUBLIC_NEUVI_WHATSAPP`. Vercel runs the `vercel-build` script (`prisma generate && prisma migrate deploy && next build`), so migrations apply on every deploy with no Build Command override.

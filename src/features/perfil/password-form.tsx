@@ -18,7 +18,7 @@ export function PasswordForm() {
   const e = state.fieldErrors ?? {};
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate>
+    <form ref={formRef} method="post" onSubmit={onSubmit} noValidate>
       <Card>
         <CardHeader>
           <CardTitle className="font-semibold text-brand-navy-deep">Cambiar contraseña</CardTitle>

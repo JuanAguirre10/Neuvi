@@ -146,7 +146,7 @@ function NoteForm({
   };
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+    <form method="post" onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
       <div className="grid gap-4 overflow-y-auto px-5 py-4">
         {values.appointmentId ? <input type="hidden" name="appointmentId" value={values.appointmentId} /> : null}
         {linkedAppointmentLabel ? (

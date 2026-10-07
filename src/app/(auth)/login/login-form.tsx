@@ -7,7 +7,7 @@ import { loginAction } from "../actions";
 export function LoginForm({ next }: { next?: string }) {
   const { state, pending, onSubmit } = useServerForm(loginAction);
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="grid gap-4" noValidate>
       <input type="hidden" name="next" value={next ?? ""} />
       <FormMessage message={state.message} ok={state.ok} />
       <Field label="Correo electrónico" htmlFor="email" error={state.fieldErrors?.email}>

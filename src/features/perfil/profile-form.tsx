@@ -24,7 +24,7 @@ export function ProfileForm({ profile }: { profile: ProfileValues }) {
   const e = state.fieldErrors ?? {};
 
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form method="post" onSubmit={onSubmit} noValidate>
       <Card>
         <CardHeader>
           <CardTitle className="font-semibold text-brand-navy-deep">Datos personales</CardTitle>

@@ -13,7 +13,10 @@ import { cn } from "@/lib/utils";
  * (con `<form action={...}>` React limpia el formulario aunque haya errores de validación).
  *
  *   const { state, pending, onSubmit } = useServerForm(createPatientAction);
- *   <form onSubmit={onSubmit}> ... <SubmitButton pending={pending}>Guardar</SubmitButton>
+ *   <form method="post" onSubmit={onSubmit}> ... <SubmitButton pending={pending}>Guardar</SubmitButton>
+ *
+ * Usa siempre method="post": si alguien envía antes de que cargue el JS, un <form> sin method
+ * hace GET y deja los datos (contraseñas, DNI…) en la URL.
  *
  * Para acciones con argumentos extra usa bind: useServerForm(updatePatient.bind(null, id)).
  */

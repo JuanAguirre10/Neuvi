@@ -45,7 +45,7 @@ export function ClinicalRecordForm({
   const [consent, setConsent] = useState(values.informedConsent);
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-6 p-4 sm:p-5">
+    <form method="post" onSubmit={onSubmit} noValidate className="grid gap-6 p-4 sm:p-5">
       {RECORD_SECTIONS.map((section) => (
         <fieldset key={section.id} className="grid gap-3">
           <SectionTitle icon={section.icon}>{section.title}</SectionTitle>

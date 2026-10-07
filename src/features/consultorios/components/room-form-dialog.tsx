@@ -66,7 +66,7 @@ function RoomForm({ room, onDone }: { room?: RoomValues; onDone: () => void }) {
   const e = state.fieldErrors ?? {};
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="grid gap-4" noValidate>
       <FormMessage message={state.ok ? undefined : state.message} />
       <Field label="Nombre" htmlFor="room-name" error={e.name} required>
         <Input

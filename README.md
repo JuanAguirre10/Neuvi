@@ -54,7 +54,7 @@ Para ver la historia clínica, entra como el psicólogo tratante (por ejemplo `l
 3. Agrega las variables de entorno:
    - `SESSION_SECRET`: genera uno con `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
    - `NEXT_PUBLIC_NEUVI_WHATSAPP`: `51972540056`.
-4. Usa este **Build Command**: `prisma generate && prisma migrate deploy && next build`.
+4. No hace falta configurar el **Build Command**: Vercel ejecuta el script `vercel-build` de `package.json` (`prisma generate && prisma migrate deploy && next build`), que aplica las migraciones en cada despliegue.
 5. Despliega. Para cargar los datos demo en producción, ejecuta `npm run db:seed` localmente con las variables de Neon.
 
 ## Seguridad y datos sensibles

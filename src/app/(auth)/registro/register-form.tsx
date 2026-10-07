@@ -21,7 +21,7 @@ export function RegisterForm({ defaultType }: { defaultType: OrgType }) {
   const e = state.fieldErrors ?? {};
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="grid gap-4" noValidate>
       <FormMessage message={state.message} ok={state.ok} />
 
       <fieldset className="grid grid-cols-2 gap-3">

@@ -79,7 +79,7 @@ export function PatientForm({
   ];
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-5">
+    <form method="post" onSubmit={onSubmit} noValidate className="grid gap-5">
       <datalist id="referral-suggestions">
         {REFERRAL_SOURCE_SUGGESTIONS.map((s) => (
           <option key={s} value={s} />

@@ -127,7 +127,7 @@ function MemberForm({
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-4">
+    <form method="post" onSubmit={onSubmit} noValidate className="grid gap-4">
       <DialogHeader>
         <DialogTitle className="text-brand-navy-deep">{editing ? "Editar miembro" : "Agregar miembro del equipo"}</DialogTitle>
         <DialogDescription>

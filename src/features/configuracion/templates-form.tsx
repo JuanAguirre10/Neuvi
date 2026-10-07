@@ -34,7 +34,7 @@ export function TemplatesForm({
   const e = state.fieldErrors ?? {};
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-6">
+    <form method="post" onSubmit={onSubmit} noValidate className="grid gap-6">
       <FormMessage message={state.ok ? undefined : state.message} />
 
       <TemplateEditor

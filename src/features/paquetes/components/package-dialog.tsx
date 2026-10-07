@@ -133,7 +133,7 @@ function PackageForm({
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+    <form method="post" onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
       <div className="grid gap-4 overflow-y-auto px-5 py-4">
         <fieldset className="grid gap-2">
           <legend className="mb-2 text-[0.8rem] font-medium text-brand-navy">Tipo de paquete</legend>

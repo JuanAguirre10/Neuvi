@@ -180,7 +180,7 @@ function AppointmentForm({
   const hint = professionalHint({ editing, patient, treating, canManageAll });
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="grid gap-4" noValidate>
       <FormMessage message={state.ok ? undefined : state.message} />
 
       {editing ? (
