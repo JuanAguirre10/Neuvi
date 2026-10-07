@@ -70,7 +70,7 @@ export async function SummaryTab({
   const them = traspaso === 1 ? "la" : "las";
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       {traspaso > 0 ? (
         <div className="flex flex-col gap-3 rounded-xl border border-primary/15 bg-info-soft px-4 py-3.5 sm:flex-row sm:items-center">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/70 text-primary">
@@ -134,8 +134,8 @@ export async function SummaryTab({
         </div>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        <div className="grid content-start gap-5 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="grid grid-cols-1 content-start gap-5 lg:col-span-2">
           {/* Paquete actual */}
           <Panel
             title="Paquete actual"
@@ -262,7 +262,7 @@ export async function SummaryTab({
           ) : null}
         </div>
 
-        <div className="grid content-start gap-5">
+        <div className="grid grid-cols-1 content-start gap-5">
           {/* Solo el psicólogo tratante ve este resumen clínico. */}
           {clinical ? (
             <Panel
