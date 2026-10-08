@@ -34,7 +34,7 @@ export async function AppointmentsTab({ user, patient }: { user: CurrentUser; pa
   }
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <Panel
         title={`Próximas citas (${upcoming.length})`}
         icon={CalendarClock}

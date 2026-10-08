@@ -48,7 +48,7 @@ export default async function CajaYPagosPage({
         }
       />
 
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div className="grid gap-2">
           <PeriodFilter period={period} />
           <p className="text-sm text-muted-foreground first-letter:uppercase">{period.label}</p>

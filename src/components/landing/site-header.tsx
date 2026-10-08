@@ -21,7 +21,7 @@ export function SiteHeader() {
           <Logo className="h-8" priority />
         </Link>
 
-        <nav aria-label="Secciones" className="hidden flex-1 items-center justify-center gap-1 md:flex">
+        <nav aria-label="Secciones" className="hidden flex-1 items-center justify-center gap-1 lg:flex">
           {LANDING_NAV.map((item) => (
             <a
               key={item.href}
@@ -33,7 +33,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
+        <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <Button asChild variant="ghost" className="hidden h-9 px-3 text-brand-navy sm:inline-flex">
             <Link href="/login">Iniciar sesión</Link>
           </Button>
@@ -43,7 +43,7 @@ export function SiteHeader() {
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-9 md:hidden" aria-label="Abrir menú">
+              <Button variant="ghost" size="icon" className="size-9 lg:hidden" aria-label="Abrir menú">
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
