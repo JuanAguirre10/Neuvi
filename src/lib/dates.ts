@@ -144,3 +144,15 @@ export function dateOnlyToKey(date: Date | null | undefined): string {
 export function daysUntil(date: Date): number {
   return Math.ceil((date.getTime() - Date.now()) / DAY_MS);
 }
+
+const dateOnlyFmt = (opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("es-PE", { timeZone: "UTC", ...opts });
+
+/** Para campos @db.Date (medianoche UTC): "05/10/2026" sin convertir zona horaria. */
+export function formatDateOnly(date: Date): string {
+  return dateOnlyFmt({ day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
+}
+
+/** Para campos @db.Date: "5 oct. 2026" sin convertir zona horaria. */
+export function formatShortDateOnly(date: Date): string {
+  return dateOnlyFmt({ day: "numeric", month: "short", year: "numeric" }).format(date);
+}

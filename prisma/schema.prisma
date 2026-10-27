@@ -2,6 +2,13 @@
 // Multi-tenant: casi todas las tablas cuelgan de Organization. Toda consulta debe
 // filtrar por organizationId (ver src/lib/permissions.ts).
 // Montos en céntimos de sol (Int) para evitar problemas con decimales.
+//
+// Dos niveles de usuarios:
+//   - User: personal de cada consultorio/centro (tenant).
+//   - PlatformAdmin: equipo de Neuvi que administra las cuentas suscritas (/admin).
+//     Nunca ve datos clínicos ni datos personales de pacientes, solo métricas agregadas.
+// La suscripción de cada organización vive en Subscription (1:1); su historial en
+// SubscriptionEvent y su facturación en SubscriptionInvoice / SubscriptionPayment.
 
 generator client {
   provider = "prisma-client-js"
@@ -19,10 +26,40 @@ enum OrgType {
   CENTRO // centro psicológico
 }
 
+/// Código del plan comercial (catálogo en SubscriptionPlan).
 enum Plan {
-  PRUEBA // 3 meses (90 días) con acceso completo
   INDIVIDUAL
   CENTRO
+}
+
+/// Estados que decide Neuvi. "Prueba vencida" y "con deuda" se derivan de fechas y facturas.
+enum SubscriptionStatus {
+  PRUEBA // prueba gratuita (trialEndsAt)
+  ACTIVA // plan pagado
+  SUSPENDIDA // sin acceso (falta de pago u otro motivo)
+  CANCELADA // la cuenta dejó Neuvi
+}
+
+enum BillingCycle {
+  MENSUAL
+  ANUAL
+}
+
+enum SubscriptionEventType {
+  ALTA // registro de la cuenta (inicia la prueba)
+  PRUEBA_EXTENDIDA
+  PLAN_ACTIVADO
+  PLAN_CAMBIADO
+  PRECIO_ACTUALIZADO
+  SUSPENDIDA
+  REACTIVADA
+  CANCELADA
+}
+
+enum PlatformRole {
+  SUPERADMIN // todo, incluido el equipo de Neuvi
+  FINANZAS // facturación, cobros y activación de planes
+  SOPORTE // consulta, extensión de prueba y notas
 }
 
 enum Role {
@@ -91,8 +128,6 @@ model Organization {
   id                    String   @id @default(cuid())
   name                  String
   type                  OrgType
-  plan                  Plan     @default(PRUEBA)
-  trialEndsAt           DateTime
   phone                 String?
   email                 String?
   address               String?
@@ -110,6 +145,8 @@ model Organization {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
+  subscription       Subscription?
+  accountNotes       AccountNote[]
   users              User[]
   rooms              Room[]
   patients           Patient[]
@@ -117,26 +154,29 @@ model Organization {
   packages           Package[]
   payments           Payment[]
   patientAssignments PatientAssignment[]
+
+  @@index([createdAt])
 }
 
 model User {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   organizationId String
   name           String
-  email          String   @unique
+  email          String    @unique
   passwordHash   String
   role           Role
   /// true si atiende pacientes (el psicólogo independiente es ADMIN + profesional).
-  isProfessional Boolean  @default(false)
+  isProfessional Boolean   @default(false)
   specialty      String?
   /// Número de colegiatura C.Ps.P.
   licenseNumber  String?
   phone          String?
   /// Color del profesional en la agenda (hex).
-  calendarColor  String   @default("#4C8DD7")
-  active         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  calendarColor  String    @default("#4C8DD7")
+  active         Boolean   @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   patients            Patient[]           @relation("PatientProfessional")
@@ -282,6 +322,7 @@ model SessionNote {
   appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
   @@index([patientId, sessionDate])
+  @@index([authorId])
 }
 
 /// Paquete de sesiones comprado por un paciente. Una sesión suelta = paquete de 1.
@@ -329,6 +370,7 @@ model Payment {
 
   @@index([organizationId, paidAt])
   @@index([packageId])
+  @@index([patientId])
 }
 
 model Appointment {
@@ -363,6 +405,7 @@ model Appointment {
   @@index([professionalId, startsAt])
   @@index([roomId, startsAt])
   @@index([patientId])
+  @@index([packageId])
 }
 
 /// Bitácora de cambios de psicólogo tratante (quién, cuándo, de quién a quién).
@@ -386,4 +429,157 @@ model PatientAssignment {
   changedBy    User?        @relation("AssignmentChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([patientId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Plataforma Neuvi (SaaS): suscripciones, facturación y equipo interno.
+// ---------------------------------------------------------------------------
+
+/// Catálogo de planes. listPriceCents null = "Precio por definir" (se pacta por cuenta).
+model SubscriptionPlan {
+  code             Plan     @id
+  name             String
+  description      String?
+  /// Precio de lista mensual en céntimos. Si perProfessional, es por psicólogo activo.
+  listPriceCents   Int?
+  perProfessional  Boolean  @default(false)
+  /// Máximo de profesionales permitidos (null = sin límite).
+  maxProfessionals Int?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+/// Contrato vigente de una organización con Neuvi (uno por organización).
+model Subscription {
+  id             String             @id @default(cuid())
+  organizationId String             @unique
+  planCode       Plan
+  status         SubscriptionStatus @default(PRUEBA)
+  billingCycle   BillingCycle       @default(MENSUAL)
+  trialEndsAt    DateTime
+  /// Precio mensual pactado en céntimos (por psicólogo si el plan es por profesional). null = precio de lista.
+  priceCents     Int?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         SubscriptionPlan      @relation(fields: [planCode], references: [code])
+  events       SubscriptionEvent[]
+  invoices     SubscriptionInvoice[]
+
+  @@index([planCode, status])
+  @@index([status, trialEndsAt])
+}
+
+/// Historial de la suscripción: altas, activaciones, cambios de plan, suspensiones...
+model SubscriptionEvent {
+  id             String                @id @default(cuid())
+  subscriptionId String
+  type           SubscriptionEventType
+  fromPlan       Plan?
+  toPlan         Plan?
+  detail         String?
+  /// Miembro de Neuvi que hizo el cambio (null = el sistema o el propio cliente al registrarse).
+  actorId        String?
+  createdAt      DateTime              @default(now())
+
+  subscription Subscription   @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  actor        PlatformAdmin? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId, createdAt])
+  @@index([createdAt])
+  @@index([actorId])
+}
+
+/// Cobro de un periodo de la suscripción. Total = seats * unitPriceCents - discountCents.
+/// El estado (pendiente / pagada / vencida) se deriva de sus pagos y de dueDate; solo la anulación se guarda.
+/// Unicidad del periodo: índice único parcial en la migración (subscriptionId, periodStart) WHERE voidedAt IS NULL,
+/// para poder volver a emitir un periodo cuya factura se anuló. Prisma no modela índices parciales.
+model SubscriptionInvoice {
+  id             String    @id @default(cuid())
+  /// Correlativo visible, p. ej. NVX-2026-000123.
+  number         String    @unique
+  subscriptionId String
+  periodStart    DateTime  @db.Date
+  periodEnd      DateTime  @db.Date
+  issuedAt       DateTime  @default(now())
+  dueDate        DateTime  @db.Date
+  /// Psicólogos activos facturados (1 en el plan individual).
+  seats          Int
+  unitPriceCents Int
+  discountCents  Int       @default(0)
+  voidedAt       DateTime?
+  voidReason     String?
+  voidedById     String?
+  createdById    String?
+  createdAt      DateTime  @default(now())
+
+  subscription Subscription          @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  createdBy    PlatformAdmin?        @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  voidedBy     PlatformAdmin?        @relation("InvoiceVoidedBy", fields: [voidedById], references: [id], onDelete: SetNull)
+  payments     SubscriptionPayment[]
+
+  @@index([subscriptionId, periodStart])
+  @@index([dueDate])
+  @@index([issuedAt])
+  @@index([createdById])
+  @@index([voidedById])
+}
+
+/// Pago recibido por Neuvi para una factura (admite pagos parciales).
+model SubscriptionPayment {
+  id             String        @id @default(cuid())
+  invoiceId      String
+  amountCents    Int
+  method         PaymentMethod
+  paidAt         DateTime      @default(now())
+  /// N° de operación
+  reference      String?
+  notes          String?
+  registeredById String?
+  createdAt      DateTime      @default(now())
+
+  invoice      SubscriptionInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  registeredBy PlatformAdmin?      @relation(fields: [registeredById], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@index([paidAt])
+  @@index([registeredById])
+}
+
+/// Nota interna del equipo de Neuvi sobre una cuenta (seguimiento comercial / soporte).
+model AccountNote {
+  id             String   @id @default(cuid())
+  organizationId String
+  authorId       String?
+  body           String
+  createdAt      DateTime @default(now())
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  author       PlatformAdmin? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([authorId])
+}
+
+/// Equipo interno de Neuvi (acceso a /admin). Separado de User a propósito.
+model PlatformAdmin {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String
+  role         PlatformRole @default(SOPORTE)
+  active       Boolean      @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  events          SubscriptionEvent[]
+  invoicesCreated SubscriptionInvoice[] @relation("InvoiceCreatedBy")
+  invoicesVoided  SubscriptionInvoice[] @relation("InvoiceVoidedBy")
+  payments        SubscriptionPayment[]
+  notes           AccountNote[]
 }

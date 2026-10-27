@@ -5,7 +5,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/auth/session";
 
 export function GET(request: NextRequest) {
-  const response = NextResponse.redirect(new URL("/login", request.url));
+  const url = new URL("/login", request.url);
+  if (request.nextUrl.searchParams.get("motivo") === "suspendida") url.searchParams.set("motivo", "suspendida");
+  const response = NextResponse.redirect(url);
   response.cookies.delete(SESSION_COOKIE);
   return response;
 }

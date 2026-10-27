@@ -39,6 +39,21 @@ Validar con psicólogos independientes y centros psicológicos reales que Neuvi 
 
 **WhatsApp de contacto de Neuvi:** +51 972 540 056 (variable `NEXT_PUBLIC_NEUVI_WHATSAPP`).
 
+## 2.1 Panel de Neuvi (`/admin`)
+
+Panel interno del equipo de Neuvi para controlar las cuentas suscritas. No forma parte del producto que ven los consultorios.
+
+| Rol | Puede |
+|---|---|
+| Superadmin | Todo, incluido el equipo de Neuvi y el catálogo de planes |
+| Finanzas | Facturar, registrar cobros, anular facturas, activar o cambiar planes y precios, suspender o reactivar |
+| Soporte | Consultar, extender pruebas y dejar notas internas |
+
+- **Suscripción por cuenta:** plan (Individual o Centro), estado (prueba, activa, suspendida o cancelada), ciclo (mensual o anual) y precio pactado. Mientras el precio de lista esté "por definir", se pacta por cuenta.
+- **Facturación de Neuvi:** una factura por periodo. Total = psicólogos activos × precio − descuento. Admite pagos parciales. El estado (pendiente, pagada, vencida o anulada) se calcula a partir de los pagos y la fecha de vencimiento.
+- **Suspensión:** una cuenta suspendida o cancelada no puede ingresar. Sus datos se conservan.
+- **Privacidad:** el equipo de Neuvi solo ve métricas agregadas (cantidad de pacientes, citas, último acceso). Nunca ve datos personales ni clínicos de pacientes (Ley N.º 29733).
+
 ## 3. Usuarios y permisos
 
 | Recurso | Administrador | Recepción | Psicólogo (centro) |

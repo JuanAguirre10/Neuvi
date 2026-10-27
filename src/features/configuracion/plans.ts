@@ -56,6 +56,10 @@ export const PLANS: PlanInfo[] = [
   },
 ];
 
+/** Se muestra cuando Neuvi suspendió o canceló la cuenta (falta de pago u otro motivo). */
+export const SUSPENDED_MESSAGE =
+  "El acceso de tu cuenta está suspendido. Escríbenos por WhatsApp para regularizarlo: tus datos se conservan.";
+
 export const TRIAL_FEATURES = [
   `Acceso completo durante ${TRIAL_LABEL}`,
   "Sin tarjeta de crédito",

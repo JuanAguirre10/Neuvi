@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import type { Role } from "@prisma/client";
+import type { Role, SubscriptionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { SESSION_COOKIE, decryptSession, encryptSession, sessionCookieOptions } from "./session";
 
@@ -49,14 +49,15 @@ export const getCurrentUser = cache(async () => {
           id: true,
           name: true,
           type: true,
-          plan: true,
-          trialEndsAt: true,
           phone: true,
           renewalThreshold: true,
           defaultSessionMinutes: true,
           noShowConsumesSession: true,
           reminderTemplate: true,
           renewalTemplate: true,
+          subscription: {
+            select: { status: true, trialEndsAt: true, planCode: true, plan: { select: { name: true } } },
+          },
         },
       },
     },
@@ -66,6 +67,11 @@ export const getCurrentUser = cache(async () => {
 });
 
 export type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
+
+/** Una cuenta suspendida o cancelada por Neuvi no puede entrar al panel. */
+export function subscriptionAllowsAccess(status: SubscriptionStatus | null | undefined): boolean {
+  return status === "PRUEBA" || status === "ACTIVA";
+}
 
 /**
  * Para páginas y server actions: redirige a /login si no hay sesión.
@@ -78,6 +84,7 @@ export async function requireUser(): Promise<CurrentUser> {
     const store = await cookies();
     redirect(store.has(SESSION_COOKIE) ? "/salir" : "/login");
   }
+  if (!subscriptionAllowsAccess(user.organization.subscription?.status)) redirect("/salir?motivo=suspendida");
   return user;
 }
 

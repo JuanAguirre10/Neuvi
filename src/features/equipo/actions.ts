@@ -5,6 +5,7 @@ import { hash } from "bcryptjs";
 import { Prisma, type Role } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { emailInUse } from "@/lib/accounts";
 import { requireRole, type CurrentUser } from "@/lib/auth";
 import { type ActionState, formToObject, fromZodError } from "@/lib/action-state";
 import { DEFAULT_CALENDAR_COLOR } from "./constants";
@@ -111,8 +112,7 @@ export async function createMemberAction(_prev: ActionState, formData: FormData)
   if (!parsed.success) return fromZodError(parsed.error);
   const data = memberData(parsed.data);
 
-  const exists = await db.user.findUnique({ where: { email: data.email }, select: { id: true } });
-  if (exists) return EMAIL_TAKEN;
+  if (await emailInUse(data.email)) return EMAIL_TAKEN;
 
   const password = parsed.data.password ?? generateTempPassword();
   const passwordHash = await hash(password, 10);
@@ -187,8 +187,7 @@ export async function updateMemberAction(
   }
 
   if (data.email !== member.email) {
-    const taken = await db.user.findUnique({ where: { email: data.email }, select: { id: true } });
-    if (taken && taken.id !== member.id) return EMAIL_TAKEN;
+    if (await emailInUse(data.email)) return EMAIL_TAKEN;
   }
 
   try {

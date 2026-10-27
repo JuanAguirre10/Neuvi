@@ -5,13 +5,14 @@ import { MobileNav } from "@/components/shell/mobile-nav";
 import { UserMenu } from "@/components/shell/user-menu";
 import { TrialBanner } from "@/components/shell/trial-banner";
 import { navFor } from "@/components/shell/nav";
-import { ORG_TYPE_LABEL, PLAN_LABEL, ROLE_LABEL } from "@/lib/format";
+import { ORG_TYPE_LABEL, ROLE_LABEL } from "@/lib/format";
 import { canManageSettings } from "@/lib/permissions";
 import { countPendingRenewals } from "@/features/renovaciones/queries";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const org = user.organization;
+  const subscription = org.subscription;
   const items = navFor(user.role, org.type);
   const pendingRenewals = await countPendingRenewals(user);
   const badges = pendingRenewals > 0 ? { "/app/renovaciones": pendingRenewals } : undefined;
@@ -19,7 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen flex-col">
-      {org.plan === "PRUEBA" ? <TrialBanner trialEndsAt={org.trialEndsAt} /> : null}
+      {subscription?.status === "PRUEBA" ? <TrialBanner trialEndsAt={subscription.trialEndsAt} /> : null}
       <div className="flex flex-1">
         {/* Sidebar escritorio */}
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r bg-sidebar lg:flex">
@@ -29,7 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="mx-3 mb-4 rounded-lg border bg-muted/50 px-3 py-2.5">
             <p className="truncate text-sm font-semibold text-brand-navy-deep">{org.name}</p>
             <p className="text-xs text-muted-foreground">
-              {ORG_TYPE_LABEL[org.type]} · {PLAN_LABEL[org.plan]}
+              {ORG_TYPE_LABEL[org.type]} · {subscription?.status === "PRUEBA" ? "Prueba gratuita" : subscription?.plan.name}
             </p>
           </div>
           <div className="flex-1 overflow-y-auto px-3">

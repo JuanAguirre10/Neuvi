@@ -32,6 +32,8 @@ export async function decryptSession(token: string | undefined): Promise<Session
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secretKey(), { algorithms: ["HS256"] });
+    // Un token del panel de Neuvi (/admin) nunca vale como sesión de consultorio.
+    if (payload.scope !== undefined || payload.aud !== undefined) return null;
     if (typeof payload.userId !== "string" || typeof payload.organizationId !== "string") return null;
     return {
       userId: payload.userId,

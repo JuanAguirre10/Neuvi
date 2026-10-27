@@ -26,14 +26,24 @@ Todos usan la contraseña **`neuvi2026`**.
 
 | Correo | Rol | Organización |
 |---|---|---|
-| `admin@bienestar.pe` | Administradora | Centro Psicológico Bienestar |
+| `admin@bienestar.pe` | Administradora | Centro Psicológico Bienestar (prueba que vence en 5 días) |
 | `recepcion@bienestar.pe` | Recepción | Centro Psicológico Bienestar |
 | `lucia@bienestar.pe` | Psicóloga (adultos) | Centro Psicológico Bienestar |
 | `diego@bienestar.pe` | Psicólogo (infantil) | Centro Psicológico Bienestar |
 | `andrea@bienestar.pe` | Psicóloga (pareja) | Centro Psicológico Bienestar |
-| `ana@neuvi.demo` | Psicóloga independiente | Consultorio Ps. Ana Torres |
+| `ana@neuvi.demo` | Psicóloga independiente | Consultorio Ps. Ana Torres (plan Individual activo) |
 
 Para ver la historia clínica, entra como el psicólogo tratante (por ejemplo `lucia@bienestar.pe`). Ni la recepción ni la administradora pueden verla.
+
+Equipo de Neuvi (panel `/admin`), con la misma contraseña:
+
+| Correo | Rol |
+|---|---|
+| `admin@neuvi.pe` | Superadmin (Juan Aguirre) |
+| `finanzas@neuvi.pe` | Finanzas |
+| `soporte@neuvi.pe` | Soporte |
+
+El seed también crea unas 36 cuentas más (centros y psicólogos independientes de Lima y regiones) en distintos estados de suscripción, con su equipo, pacientes, agenda, paquetes, pagos, facturas de Neuvi y notas internas. Sus usuarios usan la misma contraseña; los correos se ven en el panel `/admin` o en `npm run db:studio`. Las fechas son relativas al día en que se corre el seed.
 
 ## Scripts
 

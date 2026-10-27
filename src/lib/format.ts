@@ -1,15 +1,18 @@
 import type {
   AppointmentStatus,
+  BillingCycle,
   DocumentType,
   Modality,
   PackageStatus,
   PatientStatus,
   PaymentMethod,
-  Plan,
+  PlatformRole,
   RiskLevel,
   Role,
   Sex,
   OrgType,
+  SubscriptionEventType,
+  SubscriptionStatus,
 } from "@prisma/client";
 
 // ---------- Dinero (siempre en céntimos) ----------
@@ -19,6 +22,13 @@ const pen = new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" 
 /** 12050 -> "S/ 120.50" */
 export function formatPEN(cents: number): string {
   return pen.format(cents / 100);
+}
+
+const penWhole = new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", maximumFractionDigits: 0 });
+
+/** 262700 -> "S/ 2,627" (indicadores donde los céntimos no aportan). */
+export function formatPENWhole(cents: number): string {
+  return penWhole.format(Math.round(cents / 100));
 }
 
 /** "120.50" | "120,50" | "120" -> 12050. Devuelve null si no es un monto válido. */
@@ -62,10 +72,33 @@ export const ORG_TYPE_LABEL: Record<OrgType, string> = {
   CENTRO: "Centro psicológico",
 };
 
-export const PLAN_LABEL: Record<Plan, string> = {
+export const SUBSCRIPTION_STATUS_LABEL: Record<SubscriptionStatus, string> = {
   PRUEBA: "Prueba gratuita",
-  INDIVIDUAL: "Plan Individual",
-  CENTRO: "Plan Centro Psicológico",
+  ACTIVA: "Activa",
+  SUSPENDIDA: "Suspendida",
+  CANCELADA: "Cancelada",
+};
+
+export const SUBSCRIPTION_EVENT_LABEL: Record<SubscriptionEventType, string> = {
+  ALTA: "Alta de la cuenta",
+  PRUEBA_EXTENDIDA: "Prueba extendida",
+  PLAN_ACTIVADO: "Plan activado",
+  PLAN_CAMBIADO: "Cambio de plan",
+  PRECIO_ACTUALIZADO: "Precio actualizado",
+  SUSPENDIDA: "Cuenta suspendida",
+  REACTIVADA: "Cuenta reactivada",
+  CANCELADA: "Cuenta cancelada",
+};
+
+export const BILLING_CYCLE_LABEL: Record<BillingCycle, string> = {
+  MENSUAL: "Mensual",
+  ANUAL: "Anual",
+};
+
+export const PLATFORM_ROLE_LABEL: Record<PlatformRole, string> = {
+  SUPERADMIN: "Superadmin",
+  FINANZAS: "Finanzas",
+  SOPORTE: "Soporte",
 };
 
 export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatus, string> = {

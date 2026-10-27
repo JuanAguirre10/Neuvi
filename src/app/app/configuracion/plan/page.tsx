@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { Pill } from "@/components/common/status-badges";
 import { requireUser } from "@/lib/auth";
 import { daysUntil, formatLongDate } from "@/lib/dates";
-import { ORG_TYPE_LABEL, PLAN_LABEL } from "@/lib/format";
+import { ORG_TYPE_LABEL } from "@/lib/format";
 import { canManageSettings } from "@/lib/permissions";
 import { NEUVI_WHATSAPP, formatPhone, neuviContactLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
@@ -26,8 +26,9 @@ export default async function PlanPage() {
   const user = await requireUser();
   const org = user.organization;
   const isAdmin = canManageSettings(user);
-  const isTrial = org.plan === "PRUEBA";
-  const daysLeft = Math.max(0, daysUntil(org.trialEndsAt));
+  const subscription = org.subscription!;
+  const isTrial = subscription.status === "PRUEBA";
+  const daysLeft = Math.max(0, daysUntil(subscription.trialEndsAt));
   const trialPct = Math.min(100, Math.round(((TRIAL_DAYS - Math.min(daysLeft, TRIAL_DAYS)) / TRIAL_DAYS) * 100));
 
   return (
@@ -50,7 +51,9 @@ export default async function PlanPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Plan actual</p>
                 <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                  <p className="text-lg font-semibold text-brand-navy-deep">{PLAN_LABEL[org.plan]}</p>
+                  <p className="text-lg font-semibold text-brand-navy-deep">
+                    {isTrial ? `Prueba gratuita · ${subscription.plan.name}` : subscription.plan.name}
+                  </p>
                   {isTrial ? (
                     daysLeft > 0 ? (
                       <Pill tone="blue">
@@ -65,7 +68,7 @@ export default async function PlanPage() {
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {org.name} · {ORG_TYPE_LABEL[org.type]}
-                  {isTrial ? ` · La prueba ${daysLeft > 0 ? "termina" : "terminó"} el ${formatLongDate(org.trialEndsAt)}` : ""}
+                  {isTrial ? ` · La prueba ${daysLeft > 0 ? "termina" : "terminó"} el ${formatLongDate(subscription.trialEndsAt)}` : ""}
                 </p>
               </div>
             </div>
@@ -99,7 +102,7 @@ export default async function PlanPage() {
         {/* Planes */}
         <div className="grid gap-6 lg:grid-cols-2">
           {PLANS.map((plan) => {
-            const current = org.plan === plan.key;
+            const current = !isTrial && subscription.planCode === plan.key;
             const recommended = isTrial && org.type === plan.key;
             return (
               <Card
